@@ -1,5 +1,15 @@
 .App {
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+img{
+  width: 800px;
+  margin: 10px;
+  background-color: blue;
 }
 
 .App-logo {
