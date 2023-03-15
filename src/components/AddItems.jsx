@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import "../css/AddItems.css";
 import noDataFound from "../images/no-data-found.png";
 import ImageItem from "./ImageItem";
+import { db, storage } from "../firebase";
+import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { v4 } from "uuid";
+import { ref as dRef, set } from "firebase/database";
 
 function AddItems() {
 
@@ -10,7 +14,7 @@ function AddItems() {
 
     const onSelect = (event) => {
         const files = event.target.files;
-        if (!files) return;
+        if (!files || files.length == 0) return;
 
         setSelectedFiles(files);
         let objectUrls = [];
@@ -18,16 +22,59 @@ function AddItems() {
         for (let i = 0; i < files.length; i++) {
             objectUrls.push(URL.createObjectURL(files[i]));
         }
+        objectUrls = Array.from(new Set(objectUrls));
 
         setSelectedFilesPreview(objectUrls);
     }
 
-    const uploadClicked = () => {
+    const uploadClicked = async () => {
         console.log('Upload Clicked');
         if (!selectedFiles) return;
 
+        const filePath = `uploads/demo/images`;
 
+        const retrievedUrls = await uploadToDatabase(selectedFiles, filePath);
+        // console.log('retrievedUrls', retrievedUrls);
+        addUrlToDatabase(retrievedUrls);
     }
+
+    const uploadToDatabase = async (selectedFiles, filePath) => {
+        const retrievedUrls = [];
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+
+            const imgRef = ref(storage, filePath + file.name + v4());
+
+            await uploadBytes(imgRef, file)
+                .then(async (res) => {
+                    console.log('res', res);
+
+                    await getDownloadURL(res.ref)
+                        .then((url) => {
+                            console.log('url', url);
+                            retrievedUrls.push(url);
+                        })
+                })
+        }
+
+        return retrievedUrls;
+    }
+
+
+    const addUrlToDatabase = async (retrievedUrls) => {
+        for (let i = 0; i < retrievedUrls.length; i++) {
+            const url = retrievedUrls[i];
+            console.log('urlIMG', url);
+            const dbReference = dRef(db, ('uploads/demo/images/' + v4()));
+            set(dbReference, {
+                imgUrl: url
+            }).then((res) => {
+                console.log('resDB', res);
+            })
+        }
+    }
+
 
     return (
         <div className="container">
