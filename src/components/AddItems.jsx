@@ -7,6 +7,20 @@ import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase
 import { v4 } from "uuid";
 import { ref as dRef, set } from "firebase/database";
 
+
+// Testing The imagekit Library
+// import ImageKit from "imagekit";
+// var ImageKit = require("imagekit");
+// import { IKImage, IKVideo, IKContext, IKUpload } from 'imagekitio-react'
+
+// var imagekit =  ImageKit({
+//     publicKey: "your_public_api_key",
+//     privateKey: "your_private_api_key",
+//     urlEndpoint: "https://ik.imagekit.io/hbl5agpen/"
+// });
+
+
+
 function AddItems() {
 
     const [selectedFiles, setSelectedFiles] = useState(null);
@@ -61,14 +75,30 @@ function AddItems() {
         return retrievedUrls;
     }
 
+    const uploadToImageKit = async (selectedFiles) => {
+        const retrievedUrls = [];
+
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+
+
+        }
+
+        return retrievedUrls;
+    }
+
 
     const addUrlToDatabase = async (retrievedUrls) => {
         for (let i = 0; i < retrievedUrls.length; i++) {
             const url = retrievedUrls[i];
-            console.log('urlIMG', url);
+
+            // Image Kit url
+            const imgKitUrl = url.replace("https://firebasestorage.googleapis.com", "https://ik.imagekit.io/hbl5agpen");
+
+            console.log('urlIMG', imgKitUrl);
             const dbReference = dRef(db, ('uploads/demo/images/' + v4()));
             set(dbReference, {
-                imgUrl: url
+                imgUrl: imgKitUrl
             }).then((res) => {
                 console.log('resDB', res);
             })
