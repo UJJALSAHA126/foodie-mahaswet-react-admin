@@ -3,15 +3,15 @@ import "../css/AddItems.css";
 import noDataFound from "../images/no-data-found.png";
 import ImageItem from "./ImageItem";
 import { db, storage } from "../firebase";
-import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { v4 } from "uuid";
 import { ref as dRef, set } from "firebase/database";
+// import { IKImage, IKVideo, IKContext, IKUpload } from 'imagekitio-react'
 
 
 // Testing The imagekit Library
 // import ImageKit from "imagekit";
 // var ImageKit = require("imagekit");
-// import { IKImage, IKVideo, IKContext, IKUpload } from 'imagekitio-react'
 
 // var imagekit =  ImageKit({
 //     publicKey: "your_public_api_key",
@@ -28,7 +28,7 @@ function AddItems() {
 
     const onSelect = (event) => {
         const files = event.target.files;
-        if (!files || files.length == 0) return;
+        if (!files || files.length === 0) return;
 
         setSelectedFiles(files);
         let objectUrls = [];
@@ -45,12 +45,35 @@ function AddItems() {
         console.log('Upload Clicked');
         if (!selectedFiles) return;
 
-        const filePath = `uploads/demo/images`;
+        sendToBackEnd(selectedFiles[0]);
 
-        const retrievedUrls = await uploadToDatabase(selectedFiles, filePath);
-        // console.log('retrievedUrls', retrievedUrls);
-        addUrlToDatabase(retrievedUrls);
+        // const filePath = `uploads/demo/images`;
+
+        // const retrievedUrls = await uploadToDatabase(selectedFiles, filePath);
+        // // console.log('retrievedUrls', retrievedUrls);
+        // addUrlToDatabase(retrievedUrls);
     }
+
+
+    const sendToBackEnd = (file) => {
+        console.log('Sending to backend');
+        const formData = new FormData();
+
+        formData.append("file", file)
+
+        fetch("http://localhost:5000/uploads/", {
+            method: "POST",
+            body: formData,
+        })
+            .then(async (res) => {
+                const json = await res.json();
+                console.log('res', json)
+                const url = json.url;
+                console.log('url', url);
+            })
+            .catch((err) => { console.log("Error occured", err) })
+    }
+
 
     const uploadToDatabase = async (selectedFiles, filePath) => {
         const retrievedUrls = [];
@@ -132,7 +155,7 @@ function AddItems() {
                 </div>
 
                 <div className="preview">
-                    {(!selectedFilesPreview || selectedFilesPreview.length == 0) ?
+                    {(!selectedFilesPreview || selectedFilesPreview.length === 0) ?
                         <img className="demo-image" src={noDataFound} ></img> :
 
                         selectedFilesPreview.map((imgUrl) => {
