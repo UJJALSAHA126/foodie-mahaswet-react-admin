@@ -2,22 +2,26 @@ const express = require("express");
 const multer = require("multer")
 const ImageKit = require("imagekit")
 const cors = require('cors')
+const dotenv = require('dotenv').config();
+
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(cors());
 
 const upload = multer({ limits: { fileSize: 1000000000000 } })
 
+const imageKit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_API,
+  privateKey: process.env.IMAGEKIT_PRIVATE_API,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+})
+
 
 app.post("/", (req, res) => {
-  // console.log(typeof req);
-  // console.log(req.body);
-  // console.log(req.body.files);
   res.send("Hello I am active");
-  // res.json(req);
 })
 
 
@@ -26,12 +30,6 @@ app.listen(PORT, (error) => {
   else console.log("Error occurred, server can't start", error);
 });
 
-
-const imageKit = new ImageKit({
-  publicKey: "public_tKlquotKsQW+zbuYSLf7/FUaSSA=",
-  privateKey: "private_VuxRBmFUjYO2aXq8OCtGkMjJGUY=",
-  urlEndpoint: "https://ik.imagekit.io/hbl5agpen",
-})
 
 app.post("/uploads", upload.single("file"), async (req, res) => {
   if (!req.file) {
@@ -45,7 +43,7 @@ app.post("/uploads", upload.single("file"), async (req, res) => {
 
   try {
     await uploadFileToImageKit(req.file, req, res)
-    
+
   } catch (error) {
     const success = false;
     return res.status(500).json({
@@ -71,9 +69,10 @@ const uploadFileToImageKit = async (file, req, res) => {
         minConfidence: 95
       }
     ]
-  }).then(async (response) => {
-    await res.json({ success, message: "Successfully uploaded files", url: response.url, response });
   })
+    .then(async (response) => {
+      await res.json({ success, message: "Successfully uploaded files", url: response.url, response });
+    })
     .catch((error) => {
       success = false;
       res.status(500).json({
